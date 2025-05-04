@@ -1,3 +1,31 @@
+"""
+Project: Watershed Image Segmentation and Evaluation
+
+Description:
+This project performs image segmentation using the Watershed algorithm from OpenCV. 
+The process includes image loading, preprocessing, marker generation, and application 
+of the watershed transform to segment different regions of an image. It also evaluates 
+the segmentation accuracy using the Intersection over Union (IoU) metric by comparing 
+the segmented output against a provided ground truth mask.
+
+Applications:
+- Medical imaging (e.g., segmenting organs, tumors, or cells in MRI/CT scans)
+- Object detection in satellite or aerial imagery
+- Automated inspection in manufacturing (e.g., detecting defects or boundaries)
+- Background separation in photography and video editing
+- Document analysis (e.g., separating text, graphics, or regions in scanned pages)
+
+Key functionalities:
+- Load and preprocess input image
+- Generate markers for watershed segmentation
+- Apply watershed algorithm to detect boundaries
+- Calculate and print mean IoU for evaluation
+- Save and display intermediate and final results
+
+"""
+
+
+
 import cv2
 import numpy as np
 

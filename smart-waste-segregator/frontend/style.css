@@ -1,0 +1,18 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin-top: 40px;
+}
+
+form {
+    margin-bottom: 30px;
+}
+
+#segmentedImage {
+    max-width: 500px;
+    margin-top: 20px;
+}
+
+#result {
+    display: none;
+}
