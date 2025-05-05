@@ -2,4 +2,6 @@ __pycache__
 .venv*
 results
 uploads
-dataset
+datasetvenv/
+__pycache__/
+*.pyc
