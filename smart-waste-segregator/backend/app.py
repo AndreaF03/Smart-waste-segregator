@@ -3,7 +3,7 @@ from segmentation import watershed_segment
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
 import os
-from classifier import classify_waste 
+from classifier import classify_waste
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
