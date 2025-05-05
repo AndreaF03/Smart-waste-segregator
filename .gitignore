@@ -5,3 +5,7 @@ uploads
 datasetvenv/
 __pycache__/
 *.pyc
+dataset
+data
+dataset.zip
+
