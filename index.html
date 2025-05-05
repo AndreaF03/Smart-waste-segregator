@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waste Segregation Classifier</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            padding-top: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c7d59;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 20px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #2c7d59;
+        }
+
+        .upload-area p {
+            margin: 0;
+            color: #666;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .results-container {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            display: block;
+            margin: 0 auto 20px;
+            border-radius: 5px;
+        }
+
+        .prediction-result {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c7d59;
+            font-weight: bold;
+        }
+
+        .confidence {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .progress {
+            height: 25px;
+            margin-bottom: 10px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .progress-label span {
+            font-size: 14px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        .class-icon {
+            width: 30px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Waste Segregation Classifier</h1>
+        <p class="text-center mb-4">Upload an image to identify the waste type using watershed segmentation algorithm
+        </p>
+
+        <div class="upload-area" id="uploadArea">
+            <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="#2c7d59"
+                class="bi bi-cloud-arrow-up mb-3" viewBox="0 0 16 16">
+                <path fill-rule="evenodd"
+                    d="M7.646 5.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708l2-2z" />
+                <path
+                    d="M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.781C1.708 13 0 11.366 0 9.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383zm.653.757c-.757.653-1.153 1.44-1.153 2.056v.448l-.445.049C2.064 6.805 1 7.952 1 9.318 1 10.785 2.23 12 3.781 12h8.906C13.98 12 15 10.988 15 9.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 4.825 10.328 3 8 3a4.53 4.53 0 0 0-2.941 1.1z" />
+            </svg>
+            <p>Drag & drop your image here or click to browse</p>
+        </div>
+
+        <input type="file" id="fileInput" class="file-input" accept=".jpg, .jpeg, .png">
+
+        <div class="loading" id="loading">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Analyzing image...</p>
+        </div>
+
+        <div class="results-container" id="resultsContainer">
+            <div class="text-center mb-4">
+                <ul class="nav nav-tabs justify-content-center mb-3" id="imageTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="original-tab" data-bs-toggle="tab"
+                            data-bs-target="#original" type="button" role="tab" aria-controls="original"
+                            aria-selected="true">Original Image</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="segmentation-tab" data-bs-toggle="tab"
+                            data-bs-target="#segmentation" type="button" role="tab" aria-controls="segmentation"
+                            aria-selected="false">Segmentation</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="contours-tab" data-bs-toggle="tab" data-bs-target="#contours"
+                            type="button" role="tab" aria-controls="contours" aria-selected="false">Contours</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="imageTabContent">
+                    <div class="tab-pane fade show active" id="original" role="tabpanel" aria-labelledby="original-tab">
+                        <img id="previewImage" class="preview-image" src="" alt="Uploaded Image">
+                    </div>
+                    <div class="tab-pane fade" id="segmentation" role="tabpanel" aria-labelledby="segmentation-tab">
+                        <img id="segmentationImage" class="preview-image" src="" alt="Segmentation Image">
+                    </div>
+                    <div class="tab-pane fade" id="contours" role="tabpanel" aria-labelledby="contours-tab">
+                        <img id="contoursImage" class="preview-image" src="" alt="Contours Image">
+                    </div>
+                </div>
+            </div>
+
+            <div class="prediction-result" id="predictionResult"></div>
+            <div class="confidence" id="confidenceText"></div>
+
+            <h5 class="mt-4 mb-3">Confidence Scores</h5>
+            <div id="probabilitiesContainer"></div>
+
+            <div class="text-center mt-4">
+                <button class="btn btn-primary" id="uploadAnother">Upload Another Image</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const loading = document.getElementById('loading');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const previewImage = document.getElementById('previewImage');
+            const predictionResult = document.getElementById('predictionResult');
+            const confidenceText = document.getElementById('confidenceText');
+            const probabilitiesContainer = document.getElementById('probabilitiesContainer');
+            const uploadAnother = document.getElementById('uploadAnother');
+
+            // Class colors for progress bars
+            const classColors = {
+                'cardboard': '#8B4513',
+                'glass': '#87CEEB',
+                'metal': '#C0C0C0',
+                'paper': '#FFFACD',
+                'plastic': '#00BFFF',
+                'trash': '#696969'
+            };
+
+            // Handle click on upload area
+            uploadArea.addEventListener('click', function () {
+                fileInput.click();
+            });
+
+            // Handle drag and drop
+            uploadArea.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#2c7d59';
+            });
+
+            uploadArea.addEventListener('dragleave', function () {
+                uploadArea.style.borderColor = '#ccc';
+            });
+
+            uploadArea.addEventListener('drop', function (e) {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#ccc';
+
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleFileUpload();
+                }
+            });
+
+            // Handle file selection
+            fileInput.addEventListener('change', handleFileUpload);
+
+            // Handle "Upload Another" button click
+            uploadAnother.addEventListener('click', function () {
+                resultsContainer.style.display = 'none';
+                uploadArea.style.display = 'block';
+                fileInput.value = '';
+            });
+
+            function handleFileUpload() {
+                if (fileInput.files.length === 0) return;
+
+                const file = fileInput.files[0];
+
+                // Check if file is an image
+                if (!file.type.match('image.*')) {
+                    alert('Please upload an image file (JPG, JPEG, or PNG)');
+                    return;
+                }
+
+                // Show loading spinner
+                uploadArea.style.display = 'none';
+                loading.style.display = 'block';
+
+                // Create form data
+                const formData = new FormData();
+                formData.append('file', file);
+
+                // Send file to server
+                fetch('/classify', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        loading.style.display = 'none';
+
+                        if (data.error) {
+                            alert('Error: ' + data.error);
+                            uploadArea.style.display = 'block';
+                            return;
+                        }
+
+                        // Display results
+                        previewImage.src = 'data:image/jpeg;base64,' + data.image;
+                        document.getElementById('segmentationImage').src = 'data:image/jpeg;base64,' + data.segmentation_image;
+                        document.getElementById('contoursImage').src = 'data:image/jpeg;base64,' + data.contours_image;
+                        predictionResult.textContent = 'Prediction: ' + data.class;
+                        confidenceText.textContent = 'Confidence: ' + (data.confidence * 100).toFixed(2) + '%';
+
+                        // Display probabilities
+                        probabilitiesContainer.innerHTML = '';
+                        Object.entries(data.probabilities).forEach(([className, probability]) => {
+                            const prob = probability * 100;
+                            const color = classColors[className] || '#007bff';
+
+                            const probDiv = document.createElement('div');
+                            probDiv.innerHTML = `
+                            <div class="progress-label">
+                                <span>${className}</span>
+                                <span>${prob.toFixed(2)}%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" 
+                                    style="width: ${prob}%; background-color: ${color}" 
+                                    aria-valuenow="${prob}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        `;
+                            probabilitiesContainer.appendChild(probDiv);
+                        });
+
+                        resultsContainer.style.display = 'block';
+                    })
+                    .catch(error => {
+                        loading.style.display = 'none';
+                        uploadArea.style.display = 'block';
+                        alert('Error: ' + error.message);
+                    });
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
